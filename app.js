@@ -55,15 +55,38 @@ function normalizeHabit(raw) {
     target: clamp(parseInt(raw.target, 10) || 3, 1, 7),
     created: typeof raw.created === 'string' && DATE_RE.test(raw.created) ? raw.created : (earliest || todayKey()),
     done,
+    updated: Number(raw.updated) || 0,
   };
 }
 
-const makeDefaults = () => DEFAULT_HABITS.map(h => normalizeHabit({ ...h, id: makeId(), done: [] }));
-const freshState = () => ({ v: 2, habits: makeDefaults(), unlocked: [], lastNotify: '' });
+// Стартовые привычки имеют одинаковые id на всех устройствах, чтобы синхронизация не плодила дубли
+const makeDefaults = (stableIds = false) => DEFAULT_HABITS.map((h, i) =>
+  normalizeHabit({ ...h, id: stableIds ? `default-${i}` : makeId(), done: [] }));
+const freshState = () => ({ v: 2, habits: makeDefaults(true), deleted: {}, unlocked: [], lastNotify: '' });
 
-function stateFromHabits(list, extra = {}) {
-  const habits = list.map(normalizeHabit).filter(Boolean);
-  return habits.length ? { v: 2, habits, unlocked: [], lastNotify: '', ...extra } : null;
+function normalizeDeleted(raw) {
+  const out = {};
+  if (raw && typeof raw === 'object') {
+    Object.entries(raw).forEach(([id, ts]) => { if (Number.isFinite(ts)) out[id] = ts; });
+  }
+  return out;
+}
+
+const normalizeUnlocked = raw => (Array.isArray(raw) ? raw.filter(x => typeof x === 'string') : []);
+
+function buildState(list, extra = {}) {
+  return {
+    v: 2,
+    habits: list.map(normalizeHabit).filter(Boolean),
+    deleted: normalizeDeleted(extra.deleted),
+    unlocked: normalizeUnlocked(extra.unlocked),
+    lastNotify: typeof extra.lastNotify === 'string' ? extra.lastNotify : '',
+  };
+}
+
+function stateFromHabits(list) {
+  const built = buildState(list);
+  return built.habits.length ? built : null;
 }
 
 function loadState() {
@@ -71,11 +94,7 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      const loaded = s && Array.isArray(s.habits) ? stateFromHabits(s.habits, {
-        unlocked: Array.isArray(s.unlocked) ? s.unlocked.filter(x => typeof x === 'string') : [],
-        lastNotify: typeof s.lastNotify === 'string' ? s.lastNotify : '',
-      }) : null;
-      if (loaded) return loaded;
+      if (s && Array.isArray(s.habits)) return buildState(s.habits, s);
     }
     const old = localStorage.getItem(OLD_STORAGE_KEY);
     if (old) {
@@ -93,9 +112,17 @@ let activeTab = 'habits';
 let activeCategory = 'Все';
 let editingId = null;
 
-function save() {
+// sync.js подставляет сюда отправку данных в облако
+let onSaved = () => {};
+
+function saveLocal() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
   catch (e) { showToast('⚠️ Не удалось сохранить данные в браузере'); }
+}
+
+function save() {
+  saveLocal();
+  onSaved();
 }
 
 const updateHabits = habits => { state = { ...state, habits }; };
@@ -240,6 +267,7 @@ function toggleDay(habitId, key) {
   updateHabits(state.habits.map(h => h.id !== habitId ? h : {
     ...h,
     done: h.done.includes(key) ? h.done.filter(k => k !== key) : [...h.done, key],
+    updated: Date.now(),
   }));
   checkAchievements();
   save();
@@ -248,7 +276,11 @@ function toggleDay(habitId, key) {
 
 function deleteHabit(habit) {
   if (!confirm(`Удалить «${habit.name}»?`)) return;
-  updateHabits(state.habits.filter(h => h.id !== habit.id));
+  state = {
+    ...state,
+    habits: state.habits.filter(h => h.id !== habit.id),
+    deleted: { ...state.deleted, [habit.id]: Date.now() },
+  };
   save();
   render();
 }
@@ -300,7 +332,7 @@ function buildEditForm(habit) {
     if (!name.value.trim()) return;
     const edited = normalizeHabit({
       ...habit, emoji: emoji.value.trim(), name: name.value.trim(), category: category.value,
-      weekly: type.value === 'weekly', target: target.value,
+      weekly: type.value === 'weekly', target: target.value, updated: Date.now(),
     });
     updateHabits(state.habits.map(h => h.id === habit.id ? edited : h));
     editingId = null;
@@ -487,7 +519,7 @@ function initForm() {
     const habit = normalizeHabit({
       id: makeId(), emoji: $('newEmoji').value.trim(), name,
       category: $('newCategory').value, weekly: $('newType').value === 'weekly',
-      target: $('newTarget').value, created: todayKey(), done: [],
+      target: $('newTarget').value, created: todayKey(), done: [], updated: Date.now(),
     });
     updateHabits([...state.habits, habit]);
     e.target.reset();
@@ -508,7 +540,9 @@ function initControls() {
   $('nextWeek').addEventListener('click', () => { weekOffset = Math.min(0, weekOffset + 1); render(); });
   $('resetBtn').addEventListener('click', () => {
     if (!confirm('Заменить все привычки стандартными? Текущий прогресс будет потерян.')) return;
-    state = { ...state, habits: makeDefaults() };
+    const now = Date.now();
+    const removed = Object.fromEntries(state.habits.map(h => [h.id, now]));
+    state = { ...state, habits: makeDefaults(), deleted: { ...state.deleted, ...removed } };
     save();
     render();
   });

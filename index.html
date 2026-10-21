@@ -18,6 +18,7 @@
       <p class="sub">Отмечайте выполнение — прогресс растёт. Пропуски его не уменьшают.</p>
     </div>
     <div class="tools">
+      <button class="ghost" id="syncBtn" type="button" hidden>☁️ Войти для синхронизации</button>
       <button class="ghost" id="notifyBtn" type="button">🔔 Уведомления</button>
     </div>
   </header>
@@ -60,6 +61,11 @@
   <section id="tab-awards" hidden></section>
 </main>
 <div id="toast" class="toast" role="status" hidden></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script src="app.js"></script>
+<script src="sync.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 /* Сначала сеть (чтобы обновления приходили сразу), при отсутствии интернета — кэш. */
-var CACHE = 'tracker-v2';
-var ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+var CACHE = 'tracker-v3';
+var ASSETS = ['./', './index.html', './style.css', './app.js', './sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }));
@@ -18,6 +18,7 @@ self.addEventListener('activate', function (e) {
 
 self.addEventListener('fetch', function (e) {
   if (e.request.method !== 'GET') return;
+  if (new URL(e.request.url).origin !== self.location.origin) return; // Google/Firebase не трогаем
   e.respondWith(
     fetch(e.request).then(function (res) {
       var copy = res.clone();
