@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Трекер привычек</title>
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>Трекер привычек</h1>
+      <p class="sub">Отмечайте выполнение — прогресс растёт. Пропуски его не уменьшают.</p>
+    </div>
+    <div class="tools">
+      <button class="ghost" id="notifyBtn" type="button">🔔 Уведомления</button>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Разделы">
+    <button type="button" data-tab="habits" class="active">Привычки</button>
+    <button type="button" data-tab="stats">Статистика</button>
+    <button type="button" data-tab="awards">Достижения</button>
+  </nav>
+
+  <section id="tab-habits">
+    <div id="reminders"></div>
+
+    <form id="addForm" class="card add-form">
+      <input class="emoji" type="text" id="newEmoji" placeholder="🙂" maxlength="4" aria-label="Эмодзи">
+      <input type="text" id="newName" placeholder="Новая привычка…" maxlength="60" aria-label="Название привычки" required>
+      <select id="newCategory" aria-label="Категория"></select>
+      <select id="newType" aria-label="Периодичность">
+        <option value="daily">Каждый день</option>
+        <option value="weekly">N раз в неделю</option>
+      </select>
+      <input type="number" id="newTarget" min="1" max="7" value="3" aria-label="Раз в неделю" hidden>
+      <button class="primary" type="submit">Добавить</button>
+    </form>
+
+    <div class="row">
+      <div class="chips" id="filters"></div>
+      <div class="weeknav">
+        <button class="ghost" id="prevWeek" type="button" aria-label="Предыдущая неделя">‹</button>
+        <span id="weekLabel"></span>
+        <button class="ghost" id="nextWeek" type="button" aria-label="Следующая неделя">›</button>
+      </div>
+    </div>
+
+    <div id="list"></div>
+    <button class="link" id="resetBtn" type="button">Вернуть стандартные привычки</button>
+  </section>
+
+  <section id="tab-stats" hidden></section>
+  <section id="tab-awards" hidden></section>
+</main>
+<div id="toast" class="toast" role="status" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
