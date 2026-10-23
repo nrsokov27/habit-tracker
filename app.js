@@ -2,7 +2,6 @@
 
 const STORAGE_KEY = 'habit-tracker-v2';
 const OLD_STORAGE_KEY = 'habit-tracker-v1';
-const CATEGORIES = ['Здоровье', 'Спорт', 'Разум', 'Учёба', 'Дом', 'Другое'];
 const MILESTONES = [7, 14, 21, 30, 50, 100, 200, 365, 500, 1000];
 const MILESTONE_STEP_AFTER = 500;
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -17,12 +16,12 @@ const TOAST_MS = 3500;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 const DEFAULT_HABITS = [
-  { emoji: '💧', name: 'Выпить 2 л воды', category: 'Здоровье', weekly: false },
-  { emoji: '🏋️', name: 'Тренировка', category: 'Спорт', weekly: true, target: 3 },
-  { emoji: '📖', name: 'Читать 20 минут', category: 'Разум', weekly: false },
-  { emoji: '😴', name: 'Лечь спать до 23:00', category: 'Здоровье', weekly: false },
-  { emoji: '🧘', name: 'Медитация 10 минут', category: 'Разум', weekly: false },
-  { emoji: '🧹', name: 'Уборка дома', category: 'Дом', weekly: true, target: 2 },
+  { emoji: '💧', name: 'Выпить 2 л воды', weekly: false },
+  { emoji: '🏋️', name: 'Тренировка', weekly: true, target: 3 },
+  { emoji: '📖', name: 'Читать 20 минут', weekly: false },
+  { emoji: '😴', name: 'Лечь спать до 23:00', weekly: false },
+  { emoji: '🧘', name: 'Медитация 10 минут', weekly: false },
+  { emoji: '🧹', name: 'Уборка дома', weekly: true, target: 2 },
 ];
 
 /* ---------- даты ---------- */
@@ -50,7 +49,6 @@ function normalizeHabit(raw) {
     id: raw.id,
     emoji: String(raw.emoji || '').slice(0, 4),
     name: raw.name.slice(0, 60),
-    category: CATEGORIES.includes(raw.category) ? raw.category : 'Другое',
     weekly: raw.weekly === true,
     target: clamp(parseInt(raw.target, 10) || 3, 1, 7),
     created: typeof raw.created === 'string' && DATE_RE.test(raw.created) ? raw.created : (earliest || todayKey()),
@@ -109,7 +107,6 @@ function loadState() {
 let state = loadState();
 let weekOffset = 0;
 let activeTab = 'habits';
-let activeCategory = 'Все';
 let editingId = null;
 
 // sync.js подставляет сюда отправку данных в облако
@@ -245,17 +242,6 @@ function renderReminders() {
     })));
 }
 
-function renderFilters() {
-  const box = $('filters');
-  const used = new Set(state.habits.map(h => h.category));
-  if (activeCategory !== 'Все' && !used.has(activeCategory)) activeCategory = 'Все';
-  box.replaceChildren(...['Все', ...CATEGORIES.filter(c => used.has(c))].map(c => {
-    const b = el('button', { type: 'button', className: 'chip' + (c === activeCategory ? ' active' : ''), textContent: c });
-    b.addEventListener('click', () => { activeCategory = c; renderHabitsTab(); });
-    return b;
-  }));
-}
-
 function renderWeekLabel(monday) {
   $('weekLabel').textContent = weekOffset === 0
     ? 'Эта неделя'
@@ -312,26 +298,24 @@ function buildStatus(habit, monday) {
 function buildEditForm(habit) {
   const emoji = el('input', { type: 'text', className: 'emoji', value: habit.emoji, maxLength: 4 });
   const name = el('input', { type: 'text', value: habit.name, maxLength: 60, required: true });
-  const category = el('select', {}, ...CATEGORIES.map(c =>
-    el('option', { value: c, textContent: c, selected: c === habit.category })));
   const type = el('select', {},
     el('option', { value: 'daily', textContent: 'Каждый день', selected: !habit.weekly }),
     el('option', { value: 'weekly', textContent: 'N раз в неделю', selected: habit.weekly }));
   const target = el('input', { type: 'number', min: 1, max: 7, value: habit.target, hidden: !habit.weekly });
   type.addEventListener('change', () => { target.hidden = type.value !== 'weekly'; });
-  [emoji, name, category, type, target].forEach((f, i) =>
-    f.setAttribute('aria-label', ['Эмодзи', 'Название', 'Категория', 'Периодичность', 'Раз в неделю'][i]));
+  [emoji, name, type, target].forEach((f, i) =>
+    f.setAttribute('aria-label', ['Эмодзи', 'Название', 'Периодичность', 'Раз в неделю'][i]));
 
   const cancel = el('button', { type: 'button', className: 'ghost', textContent: 'Отмена' });
   cancel.addEventListener('click', () => { editingId = null; render(); });
 
-  const form = el('form', { className: 'card add-form' }, emoji, name, category, type, target,
+  const form = el('form', { className: 'card add-form' }, emoji, name, type, target,
     el('button', { type: 'submit', className: 'primary', textContent: 'Сохранить' }), cancel);
   form.addEventListener('submit', e => {
     e.preventDefault();
     if (!name.value.trim()) return;
     const edited = normalizeHabit({
-      ...habit, emoji: emoji.value.trim(), name: name.value.trim(), category: category.value,
+      ...habit, emoji: emoji.value.trim(), name: name.value.trim(),
       weekly: type.value === 'weekly', target: target.value, updated: Date.now(),
     });
     updateHabits(state.habits.map(h => h.id === habit.id ? edited : h));
@@ -360,10 +344,10 @@ function renderHabit(habit) {
   edit.addEventListener('click', () => { editingId = habit.id; render(); });
 
   return el('div', { className: 'card' },
-    el('div', { className: 'habit-head' },
-      el('span', { textContent: habit.emoji || '✅' }),
-      el('span', { className: 'name', textContent: habit.name }),
-      el('span', { className: 'tag', textContent: habit.category }),
+    el('div', { className: 'habit-title' },
+      el('span', { className: 'emoji-mark', textContent: habit.emoji || '✅' }),
+      el('span', { className: 'name', textContent: habit.name })),
+    el('div', { className: 'habit-actions' },
       el('span', { className: 'tag', textContent: habit.weekly ? `${habit.target} р/нед` : 'каждый день' }),
       edit, del),
     buildDays(habit, monday),
@@ -374,11 +358,9 @@ function renderHabit(habit) {
 
 function renderHabitsTab() {
   renderReminders();
-  renderFilters();
   renderWeekLabel(addDays(mondayOf(new Date()), weekOffset * 7));
-  const shown = state.habits.filter(h => activeCategory === 'Все' || h.category === activeCategory);
-  $('list').replaceChildren(...(shown.length
-    ? shown.map(renderHabit)
+  $('list').replaceChildren(...(state.habits.length
+    ? state.habits.map(renderHabit)
     : [el('div', { className: 'empty', textContent: 'Привычек пока нет — добавьте первую выше.' })]));
 }
 
@@ -429,12 +411,6 @@ function renderStatsTab() {
   const worst = ranked[ranked.length - 1];
   const activeDaysStreak = streakOfDays(activitySet());
 
-  const byCategory = CATEGORIES
-    .map(c => ({ c, items: ranked.filter(r => r.h.category === c) }))
-    .filter(g => g.items.length)
-    .map(g => ({ c: g.c, rate: g.items.reduce((s, r) => s + r.rate, 0) / g.items.length }))
-    .sort((a, b) => b.rate - a.rate);
-
   const summary = [
     summaryCard('Всего отметок', String(totalChecks())),
     summaryCard('Дней подряд с активностью', `${activeDaysStreak} 🔥`),
@@ -448,8 +424,6 @@ function renderStatsTab() {
     el('div', { className: 'summary' }, ...summary),
     el('h2', { textContent: `Выполнение за ${STATS_WINDOW_DAYS} дней по привычкам` }),
     el('div', { className: 'card' }, ...ranked.map(r => statLine(`${r.h.emoji} ${r.h.name}`.trim(), r.rate))),
-    el('h2', { textContent: 'По категориям' }),
-    el('div', { className: 'card' }, ...byCategory.map(g => statLine(g.c, g.rate))),
     el('h2', { textContent: `Отметок по неделям (последние ${CHART_WEEKS})` }),
     renderWeeklyChart(),
     el('h2', { textContent: 'Активность по дням' }),
@@ -510,7 +484,6 @@ async function registerServiceWorker() {
 /* ---------- события ---------- */
 
 function initForm() {
-  $('newCategory').replaceChildren(...CATEGORIES.map(c => el('option', { value: c, textContent: c })));
   $('newType').addEventListener('change', e => { $('newTarget').hidden = e.target.value !== 'weekly'; });
   $('addForm').addEventListener('submit', e => {
     e.preventDefault();
@@ -518,7 +491,7 @@ function initForm() {
     if (!name) return;
     const habit = normalizeHabit({
       id: makeId(), emoji: $('newEmoji').value.trim(), name,
-      category: $('newCategory').value, weekly: $('newType').value === 'weekly',
+      weekly: $('newType').value === 'weekly',
       target: $('newTarget').value, created: todayKey(), done: [], updated: Date.now(),
     });
     updateHabits([...state.habits, habit]);

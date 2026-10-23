@@ -35,7 +35,6 @@
     <form id="addForm" class="card add-form">
       <input class="emoji" type="text" id="newEmoji" placeholder="🙂" maxlength="4" aria-label="Эмодзи">
       <input type="text" id="newName" placeholder="Новая привычка…" maxlength="60" aria-label="Название привычки" required>
-      <select id="newCategory" aria-label="Категория"></select>
       <select id="newType" aria-label="Периодичность">
         <option value="daily">Каждый день</option>
         <option value="weekly">N раз в неделю</option>
@@ -45,7 +44,6 @@
     </form>
 
     <div class="row">
-      <div class="chips" id="filters"></div>
       <div class="weeknav">
         <button class="ghost" id="prevWeek" type="button" aria-label="Предыдущая неделя">‹</button>
         <span id="weekLabel"></span>

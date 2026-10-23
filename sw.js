@@ -1,5 +1,5 @@
 /* Сначала сеть (чтобы обновления приходили сразу), при отсутствии интернета — кэш. */
-var CACHE = 'tracker-v3';
+var CACHE = 'tracker-v4';
 var ASSETS = ['./', './index.html', './style.css', './app.js', './sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {

@@ -33,17 +33,17 @@ input, select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(-
 input.emoji { width: 64px; text-align: center; }
 input[type=number] { width: 70px; }
 
-.row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { background: var(--card); color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 5px 12px; font-size: 14px; }
-.chip.active { color: #000; background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.row { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
 .weeknav { display: flex; align-items: center; gap: 8px; color: var(--muted); }
 
 .reminder { border-color: var(--warn); background: #1d1708; color: var(--warn); }
 .reminder.urgent { border-color: var(--bad); background: #200c0c; color: var(--bad); }
 
-.habit-head { display: flex; align-items: center; gap: 10px; }
-.habit-head .name { flex: 1; font-weight: 600; word-break: break-word; }
+.habit-title { display: flex; align-items: flex-start; gap: 10px; }
+.habit-title .emoji-mark { flex: none; }
+.habit-title .name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.habit-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+.habit-actions .tag { margin-right: auto; }
 .tag { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 8px; white-space: nowrap; }
 .icon-btn { background: none; border: 0; color: var(--muted); font-size: 18px; padding: 4px 8px; border-radius: 8px; }
 .icon-btn:hover { color: var(--bad); background: var(--card-2); }
