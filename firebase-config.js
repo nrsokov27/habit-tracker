@@ -1,13 +1,10 @@
 /*
  * Конфиг Firebase для синхронизации между устройствами.
- * Пока здесь null — приложение работает только локально, кнопки синхронизации нет.
- * Вставьте сюда объект firebaseConfig из консоли Firebase (это публичные данные, не пароль), например:
- *
- * window.FIREBASE_CONFIG = {
- *   apiKey: '...',
- *   authDomain: 'ваш-проект.firebaseapp.com',
- *   projectId: 'ваш-проект',
- *   appId: '...',
- * };
+ * Это публичные данные, не пароль: доступ к данным защищают правила Firestore.
  */
-window.FIREBASE_CONFIG = null;
+window.FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyAiy-JhKLlIXTooOK9kplNCXqX4MDUcrfA',
+  authDomain: 'habit-tracker-9e5c4.firebaseapp.com',
+  projectId: 'habit-tracker-9e5c4',
+  appId: '1:351013221803:web:1282db68197971d5190eee',
+};
