@@ -12,7 +12,6 @@ const GOOD_RATE = 0.8;
 const MID_RATE = 0.5;
 const CHART_WEEKS = 8;
 const HEAT_DAYS = 35;
-const NOTIFY_CHECK_MS = 30 * 60 * 1000;
 const TOAST_MS = 3500;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -482,33 +481,9 @@ function render() {
   renderers[activeTab]();
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === activeTab));
   ['habits', 'stats', 'awards'].forEach(t => { $(`tab-${t}`).hidden = t !== activeTab; });
-  updateNotifyButton();
 }
 
-/* ---------- уведомления ---------- */
-
-function updateNotifyButton() {
-  const b = $('notifyBtn');
-  if (!('Notification' in window)) { b.hidden = true; return; }
-  b.textContent = Notification.permission === 'granted' ? '🔔 Уведомления включены' : '🔔 Включить уведомления';
-}
-
-function maybeNotify() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const reminders = getReminders();
-  if (!reminders.length || state.lastNotify === todayKey()) return;
-  state = { ...state, lastNotify: todayKey() };
-  save();
-  const title = 'Трекер привычек';
-  const options = {
-    body: reminders.map(r => `${r.habit.emoji} ${r.habit.name}: ещё ${r.need} (дней: ${r.daysLeft})`).join('\n'),
-    icon: 'icon-192.png',
-  };
-  // На телефоне уведомления работают только через service worker
-  const registration = swRegistration;
-  if (registration) registration.showNotification(title, options);
-  else new Notification(title, options);
-}
+/* ---------- service worker (офлайн; уведомления живут в notify.js) ---------- */
 
 let swRegistration = null;
 async function registerServiceWorker() {
@@ -555,11 +530,6 @@ function initControls() {
     save();
     render();
   });
-  $('notifyBtn').addEventListener('click', async () => {
-    if (Notification.permission === 'default') await Notification.requestPermission();
-    updateNotifyButton();
-    maybeNotify();
-  });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
 }
 
@@ -568,5 +538,4 @@ initControls();
 checkAchievements();
 save();
 render();
-registerServiceWorker().then(maybeNotify);
-setInterval(maybeNotify, NOTIFY_CHECK_MS);
+registerServiceWorker().then(() => maybeNotify()); // maybeNotify объявлен в notify.js

@@ -1,6 +1,6 @@
 /* Сначала сеть (чтобы обновления приходили сразу), при отсутствии интернета — кэш. */
-var CACHE = 'tracker-v7';
-var ASSETS = ['./', './index.html', './style.css', './app.js', './sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+var CACHE = 'tracker-v8';
+var ASSETS = ['./', './index.html', './style.css', './app.js', './sync.js', './notify.js','./firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }));

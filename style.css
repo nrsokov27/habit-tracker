@@ -13,9 +13,18 @@ h2 { font-size: 18px; margin: 24px 0 10px; }
 .meta { font-size: 13px; margin-top: 8px; }
 .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
 .top > div:first-child { min-width: 0; }
-.tools { display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 18px; }
+.top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: none; max-width: 55%; }
+.notify-wrap { position: relative; }
+.acc-btn.on { border-color: var(--done); }
+.notify-panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: min(300px, calc(100vw - 32px)); background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, .6); }
+.notify-panel p { margin: 0 0 10px; font-size: 14px; }
+.notify-hint { color: var(--muted); font-size: 12px !important; margin: 10px 0 0 !important; }
+.notify-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; font-size: 14px; }
+.notify-row input[type=checkbox] { width: 20px; height: 20px; padding: 0; margin-right: 8px; }
+.notify-row:first-of-type { justify-content: flex-start; }
+.notify-allow, .notify-test { width: 100%; margin-bottom: 4px; }
 
-.account { display: flex; align-items: center; gap: 8px; flex: none; max-width: 55%; }
+.account { display: flex; align-items: center; gap: 8px; }
 .acc-text { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; line-height: 1.2; }
 .acc-email { font-size: 12px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .acc-status { font-size: 11px; color: var(--muted); }

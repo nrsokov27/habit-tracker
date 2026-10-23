@@ -17,18 +17,30 @@
       <h1>Трекер привычек</h1>
       <p class="sub">Отмечайте выполнение — прогресс растёт. Пропуски его не уменьшают.</p>
     </div>
-    <div class="account" id="account" hidden>
-      <div class="acc-text">
-        <span class="acc-email" id="accEmail"></span>
-        <span class="acc-status" id="accStatus"></span>
+    <div class="top-right">
+      <div class="account" id="account" hidden>
+        <div class="acc-text">
+          <span class="acc-email" id="accEmail"></span>
+          <span class="acc-status" id="accStatus"></span>
+        </div>
+        <button class="acc-btn" id="syncBtn" type="button">Вход</button>
       </div>
-      <button class="acc-btn" id="syncBtn" type="button">Вход</button>
+
+      <div class="notify-wrap">
+        <button class="acc-btn" id="notifyBtn" type="button" aria-expanded="false" aria-controls="notifyPanel">🔔 Уведомления</button>
+        <div class="notify-panel" id="notifyPanel" hidden>
+          <p class="notify-status" id="notifyStatus"></p>
+          <button class="primary notify-allow" id="notifyAllow" type="button" hidden>Разрешить уведомления</button>
+          <div id="notifyOptions" hidden>
+            <label class="notify-row"><input type="checkbox" id="notifyEnabled"> Ежедневное напоминание</label>
+            <label class="notify-row">Время <input type="time" id="notifyTime" value="20:00"></label>
+            <button class="ghost notify-test" id="notifyTest" type="button">Отправить тестовое</button>
+          </div>
+          <p class="notify-hint">Напоминание приходит, пока приложение открыто или свёрнуто. Для сообщений при полностью закрытом приложении нужна отдельная настройка сервера.</p>
+        </div>
+      </div>
     </div>
   </header>
-
-  <div class="tools">
-    <button class="ghost" id="notifyBtn" type="button">🔔 Уведомления</button>
-  </div>
 
   <nav class="tabs" id="tabs" aria-label="Разделы">
     <button type="button" data-tab="habits" class="active">Привычки</button>
@@ -72,5 +84,6 @@
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
 <script src="sync.js"></script>
+<script src="notify.js"></script>
 </body>
 </html>
