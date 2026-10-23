@@ -143,21 +143,28 @@ function onSyncClick() {
   }
 }
 
+const SYNCED_TEXT = 'синхронизировано';
+const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+
 function updateSyncButton() {
-  const b = $('syncBtn');
-  b.textContent = syncUser
-    ? `☁️ ${syncUser.email}${syncStatus ? ` · ${syncStatus}` : ''}`
-    : '☁️ Войти для синхронизации';
+  const email = $('accEmail');
+  const status = $('accStatus');
+  email.textContent = syncUser ? syncUser.email : '';
+  email.title = syncUser ? syncUser.email : '';
+  email.hidden = !syncUser;
+  status.textContent = syncUser ? capitalize(syncStatus) : 'Гость';
+  status.className = 'acc-status' + (syncUser && syncStatus === SYNCED_TEXT ? ' ok' : '');
+  $('syncBtn').textContent = syncUser ? 'Выход' : 'Вход';
 }
 
 function initSync() {
-  const btn = $('syncBtn');
-  if (!syncAvailable()) { btn.hidden = true; return; }
+  const account = $('account');
+  if (!syncAvailable()) { account.hidden = true; return; }
   firebase.initializeApp(window.FIREBASE_CONFIG);
   fbAuth = firebase.auth();
   fbDb = firebase.firestore();
-  btn.hidden = false;
-  btn.addEventListener('click', onSyncClick);
+  account.hidden = false;
+  $('syncBtn').addEventListener('click', onSyncClick);
   onSaved = schedulePush;
   updateSyncButton();
   fbAuth.onAuthStateChanged(onAuthChanged);

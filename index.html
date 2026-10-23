@@ -17,11 +17,18 @@
       <h1>Трекер привычек</h1>
       <p class="sub">Отмечайте выполнение — прогресс растёт. Пропуски его не уменьшают.</p>
     </div>
-    <div class="tools">
-      <button class="ghost" id="syncBtn" type="button" hidden>☁️ Войти для синхронизации</button>
-      <button class="ghost" id="notifyBtn" type="button">🔔 Уведомления</button>
+    <div class="account" id="account" hidden>
+      <div class="acc-text">
+        <span class="acc-email" id="accEmail"></span>
+        <span class="acc-status" id="accStatus"></span>
+      </div>
+      <button class="acc-btn" id="syncBtn" type="button">Вход</button>
     </div>
   </header>
+
+  <div class="tools">
+    <button class="ghost" id="notifyBtn" type="button">🔔 Уведомления</button>
+  </div>
 
   <nav class="tabs" id="tabs" aria-label="Разделы">
     <button type="button" data-tab="habits" class="active">Привычки</button>
