@@ -111,6 +111,8 @@ function handleRemote(snapshot) {
 function onAuthChanged(user) {
   syncUser = user;
   if (unsubscribeRemote) { unsubscribeRemote(); unsubscribeRemote = null; }
+  clearTimeout(pushTimer);
+  switchProfile(user ? user.uid : '');
   if (user) {
     setSyncStatus('подключение…');
     unsubscribeRemote = userDoc().onSnapshot(handleRemote, () => {
@@ -123,6 +125,7 @@ function onAuthChanged(user) {
 
 async function signIn() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' }); // всегда предлагать выбор аккаунта
   try {
     await fbAuth.signInWithPopup(provider);
   } catch (e) {
@@ -135,7 +138,7 @@ async function signIn() {
 
 function onSyncClick() {
   if (!syncUser) { signIn(); return; }
-  if (confirm(`Выйти из ${syncUser.email}? Данные на этом устройстве останутся, но синхронизация остановится.`)) {
+  if (confirm(`Выйти из ${syncUser.email}? Данные аккаунта сохранены в облаке и вернутся при следующем входе.`)) {
     fbAuth.signOut();
   }
 }

@@ -2,6 +2,7 @@
 
 const STORAGE_KEY = 'habit-tracker-v2';
 const OLD_STORAGE_KEY = 'habit-tracker-v1';
+const LAST_UID_KEY = 'habit-tracker-last-uid';
 const MILESTONES = [7, 14, 21, 30, 50, 100, 200, 365, 500, 1000];
 const MILESTONE_STEP_AFTER = 500;
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -87,14 +88,23 @@ function stateFromHabits(list) {
   return built.habits.length ? built : null;
 }
 
-function loadState() {
+// Гость хранится под STORAGE_KEY, у каждого аккаунта Google — свой ключ
+const profileKey = uid => (uid ? `${STORAGE_KEY}:${uid}` : STORAGE_KEY);
+
+function readLastUid() {
+  try { return localStorage.getItem(LAST_UID_KEY) || ''; } catch (e) { return ''; }
+}
+
+let storageKey = profileKey(readLastUid());
+
+function loadState(key = storageKey) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(key);
     if (raw) {
       const s = JSON.parse(raw);
       if (s && Array.isArray(s.habits)) return buildState(s.habits, s);
     }
-    const old = localStorage.getItem(OLD_STORAGE_KEY);
+    const old = key === STORAGE_KEY ? localStorage.getItem(OLD_STORAGE_KEY) : null;
     if (old) {
       const arr = JSON.parse(old);
       const migrated = Array.isArray(arr) ? stateFromHabits(arr) : null;
@@ -113,8 +123,34 @@ let editingId = null;
 let onSaved = () => {};
 
 function saveLocal() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  try { localStorage.setItem(storageKey, JSON.stringify(state)); }
   catch (e) { showToast('⚠️ Не удалось сохранить данные в браузере'); }
+}
+
+// Переключает устройство на данные другого аккаунта (uid) или на гостя (пустой uid).
+// Данные гостя достаются первому аккаунту, который вошёл на этом устройстве.
+function switchProfile(uid) {
+  const key = profileKey(uid);
+  if (key === storageKey) return;
+  const guestState = state;
+  const leavingGuest = storageKey === STORAGE_KEY;
+  let hasOwnData = false;
+  try {
+    hasOwnData = localStorage.getItem(key) !== null;
+    if (uid) localStorage.setItem(LAST_UID_KEY, uid); else localStorage.removeItem(LAST_UID_KEY);
+  } catch (e) { /* хранилище недоступно — работаем только в памяти */ }
+
+  storageKey = key;
+  if (uid && leavingGuest && !hasOwnData) {
+    state = guestState;
+    saveLocal();
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(freshState())); } catch (e) { /* не критично */ }
+  } else {
+    state = loadState(key);
+  }
+  editingId = null;
+  weekOffset = 0;
+  render();
 }
 
 function save() {
